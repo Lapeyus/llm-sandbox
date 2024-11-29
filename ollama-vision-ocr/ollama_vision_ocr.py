@@ -13,7 +13,7 @@ os.makedirs(TEMP_IMAGE_FOLDER, exist_ok=True)
 os.makedirs(TEXT_OUTPUT_FOLDER, exist_ok=True)
 
 # Initialize Llama 3.2 Vision parameters
-LLAMA_MODEL = "llama3.2-vision:90b-instruct-q4_K_M" #"llama3.2-vision:11b-instruct-q8_0" #"llama3.2-vision"
+LLAMA_MODEL = "llama3.2-vision:11b-instruct-fp16" # "llama3.2-vision:90b-instruct-q4_K_M" #"llama3.2-vision:11b-instruct-q8_0" #"llama3.2-vision"
 
 # Convert PDF to images
 def convert_pdf_to_images(pdf_path, output_folder):
@@ -49,13 +49,19 @@ def process_image_with_llama(image_path):
                         "Perform Optical Character Recognition on this image and provide the full extracted text exactly as it appears in the image, "
                         "your answer is the full raw extracted text without adding any summaries, explanations, or descriptions. "
                         "Do not interpret or explain the content; return ONLY the raw text."
-                     ),
+                    ),
                     "images": [image_path],
                 }
             ]
         )
-        print(response.get("message", None))
-        return response.get("message", None)
+    
+        # Extract the "content" from the "message" field
+        if hasattr(response, 'message') and hasattr(response.message, 'content'):
+            print(response.message.content)  # Print the full response for debugging
+            return response.message.content
+        else:
+            print(f"[ERROR] 'message' or 'content' field is missing in the response for {image_path}")
+            return None
     except Exception as e:
         print(f"[ERROR] Failed to process {image_path}: {e}")
         return None
@@ -74,7 +80,7 @@ def process_pdfs_in_folder_as_images(pdf_folder, temp_image_folder, text_output_
 
         for image_path in image_paths:
             print(image_path)
-            # Process each image with Llama 3.2 Vision
+        #     # Process each image with Llama 3.2 Vision
             extracted_text = process_image_with_llama(image_path)
 
             if extracted_text and isinstance(extracted_text, str):

@@ -1,0 +1,3 @@
+Pillow===10.4.0       # Required by PyMuPDF (optional)
+PyMuPDF==1.24.14      # For working with PDF files (fitz module)
+ollama==0.4.1         # Ollama Python library for Llama 3.2 Vision API interaction
